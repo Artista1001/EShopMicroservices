@@ -3,6 +3,16 @@
     public record CreateProductCommand(string Name, List<string> Category, string Description, string ImageFile, decimal Price): ICommand<CreateProductResult>;
     public record CreateProductResult(Guid Id);
 
+    public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+    {
+        public CreateProductCommandValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Name is Required");
+            RuleFor(x => x.Category).NotEmpty().WithMessage("Category is Required");
+            RuleFor(x => x.ImageFile).NotEmpty().WithMessage("ImageFile is Required");
+            RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price must be greater than zero");
+        }
+    }
     // Why we are injecting the IDocumentSession directly here why we are not creating IRepository pattern or folder or any data folder
     // because IDocumentSession is an already an absraction of database operation so we dont need any additional abstraction or unnecessary code like repository patterns
     internal class CreateProductCommandHandler(IDocumentSession documentSession, ILogger<CreateProductCommandHandler> logger) : ICommandHandler<CreateProductCommand, CreateProductResult>
@@ -34,7 +44,7 @@
                 Name = command.Name,
                 Category = command.Category,
                 Description = command.Description,
-                ImageFIle = command.ImangeFile,
+                ImageFIle = command.ImageFile,
                 Price = command.Price
             };
             
