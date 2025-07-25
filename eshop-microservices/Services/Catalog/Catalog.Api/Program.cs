@@ -1,3 +1,5 @@
+using BuildingBlock.Behaviours;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service to the container
@@ -8,18 +10,20 @@ var builder = WebApplication.CreateBuilder(args);
  * But MediatR also in same situation, intalled in BuildingBlock and used in Catalog.api, but here we have config the MediatR services with using RegisterServicesFromAssembly with Program.cs assembly so it worked
  * so is it possible for he carter, -> No, because it does not have config for setting the assembly from outside like in MediatR
  * */
-builder.Services.AddCarter();
+
 builder.Services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    config.AddOpenBehavior(typeof(ValidationBehaviours<,>)); // we have added validaton behaviour as pipeline behaviour into MediatR
 });
-
+builder.Services.AddCarter();
 builder.Services.AddMarten(opts =>
 {
     opts.Connection(builder.Configuration.GetConnectionString("Database")!);
 }).UseLightweightSessions(); // There are many option for marten operation config, here we have choose UseLightweightSessions as per our requirement
 // Other session behavious can be added here and different types of db operation behaviour can be achieved. ( Read Marten Documentation )
 
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();
 

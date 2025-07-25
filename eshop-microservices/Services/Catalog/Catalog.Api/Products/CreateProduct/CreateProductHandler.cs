@@ -1,11 +1,11 @@
 ﻿namespace Catalog.Api.Products.CreateProduct
 { 
-    public record CreateProductCommand(string Name, List<string> Category, string Description, string ImangeFile, decimal Price): ICommand<CreateProductResult>;
+    public record CreateProductCommand(string Name, List<string> Category, string Description, string ImageFile, decimal Price): ICommand<CreateProductResult>;
     public record CreateProductResult(Guid Id);
 
     // Why we are injecting the IDocumentSession directly here why we are not creating IRepository pattern or folder or any data folder
     // because IDocumentSession is an already an absraction of database operation so we dont need any additional abstraction or unnecessary code like repository patterns
-    internal class CreateProductCommandHandler(IDocumentSession documentSession) : ICommandHandler<CreateProductCommand, CreateProductResult>
+    internal class CreateProductCommandHandler(IDocumentSession documentSession, ILogger<CreateProductCommandHandler> logger) : ICommandHandler<CreateProductCommand, CreateProductResult>
     {
         // here CreateProductCommandHandler handles the request which is comming in CreateProductCommand
         // ICommandHandler was CustomInterface created for Command Operation which is direct implementation of IRequestHandler which is interface of MediatR lib
@@ -25,6 +25,8 @@
         public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
         {
             // Business Logic to create Product
+
+            logger.LogInformation("CreateProductCommandHandler.Handler called with {@model}", command);
 
             // 1. Create Product entity from commnad object
             var product = new Product
