@@ -1,5 +1,3 @@
-using BuildingBlock.Behaviours;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service to the container
@@ -25,9 +23,39 @@ builder.Services.AddMarten(opts =>
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
+// Registering Global CustomException handling using IExceptionHandler from asp.net core 
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+
 var app = builder.Build();
 
 // Add Http Request Pipeline
 app.MapCarter(); // This will look for thie ICarterModule implementation to add all routes of this app. ( map the defined httpMethods )
+
+
+//// Global Exception handling using inline code better way for large project of microservices is to use IExceptionHandler from asp.ner core libs as services
+//app.UseExceptionHandler(exceptionHandlerApp =>
+//{
+//    exceptionHandlerApp.Run(async context =>
+//    {
+//        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+//        if (exception == null) return;
+//        var problemDetails = new ProblemDetails
+//        {
+//            Title = exception.Message,
+//            Status = StatusCodes.Status500InternalServerError,
+//            Detail = exception.StackTrace 
+//        };
+
+//        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+//        logger.LogError(exception, exception.Message);
+//        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+//        context.Response.ContentType = "application/problem+json";
+//        await context.Response.WriteAsJsonAsync(problemDetails);
+//    });
+//});
+
+
+// adding pipe line of global exception hadling after registering our CustomExceptionHandler
+app.UseExceptionHandler(option => { });
 
 app.Run();

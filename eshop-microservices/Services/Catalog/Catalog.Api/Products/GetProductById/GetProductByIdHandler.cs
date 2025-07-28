@@ -2,6 +2,14 @@
 {
     public record GetProductByIdResult(Product Product);
     public record GetProductByIdQuery(Guid Id): IQuery<GetProductByIdResult>;
+
+    public class GetProductByIdValidator: AbstractValidator<GetProductByIdQuery>
+    {
+        public GetProductByIdValidator()
+        {
+            RuleFor(query => query.Id).NotEmpty().WithMessage("Id is required");
+        }
+    }
     internal class GetProductByIdQueryHandler(IDocumentSession documentSession, ILogger<GetProductByIdQueryHandler> logger) 
         : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
     {
@@ -10,9 +18,9 @@
             logger.LogInformation("GetProductByIdQueryHandler.Handle called with {@Model}", model);
             var result = await documentSession.LoadAsync<Product>(model.Id, cancellationToken);            
             if (result == null) {
-                throw new ProductNotFoundException();
+                throw new ProductNotFoundException(model.Id);
             } else {
-                return new GetProductByIdResult(result);
+                return new GetProductByIdResult(result);    
             }
         }
     }
