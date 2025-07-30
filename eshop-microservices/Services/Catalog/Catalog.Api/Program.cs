@@ -1,3 +1,7 @@
+using Catalog.Api.Data;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service to the container
@@ -8,25 +12,36 @@ var builder = WebApplication.CreateBuilder(args);
  * But MediatR also in same situation, intalled in BuildingBlock and used in Catalog.api, but here we have config the MediatR services with using RegisterServicesFromAssembly with Program.cs assembly so it worked
  * so is it possible for he carter, -> No, because it does not have config for setting the assembly from outside like in MediatR
  * */
-
+var connectionString = builder.Configuration.GetConnectionString("Database");
+if (string.IsNullOrEmpty(connectionString))
+    throw new InvalidOperationException("Connection string 'Database' is missing.");
 builder.Services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);
     config.AddOpenBehavior(typeof(ValidationBehaviours<,>)); // we have added validaton behaviour as pipeline behaviour into MediatR
+    config.AddOpenBehavior(typeof(LoggingBehaviours<,>));
 });
 builder.Services.AddCarter();
 builder.Services.AddMarten(opts =>
 {
-    opts.Connection(builder.Configuration.GetConnectionString("Database")!);
+    opts.Connection(connectionString);
 }).UseLightweightSessions(); // There are many option for marten operation config, here we have choose UseLightweightSessions as per our requirement
 // Other session behavious can be added here and different types of db operation behaviour can be achieved. ( Read Marten Documentation )
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.InitializeMartenWith<CatalogInitialData>();
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 // Registering Global CustomException handling using IExceptionHandler from asp.net core 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+builder.Services.AddHealthChecks()
+       .AddNpgSql(connectionString);
+
 var app = builder.Build();
+
+app.MapGet("/", () => "Catalog API is running....");
 
 // Add Http Request Pipeline
 app.MapCarter(); // This will look for thie ICarterModule implementation to add all routes of this app. ( map the defined httpMethods )
@@ -57,5 +72,10 @@ app.MapCarter(); // This will look for thie ICarterModule implementation to add 
 
 // adding pipe line of global exception hadling after registering our CustomExceptionHandler
 app.UseExceptionHandler(option => { });
+
+app.UseHealthChecks("/healths",new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();

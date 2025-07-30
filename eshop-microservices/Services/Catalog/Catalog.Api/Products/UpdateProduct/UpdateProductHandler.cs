@@ -1,6 +1,4 @@
-﻿
-
-namespace Catalog.Api.Products.UpdateProduct
+﻿namespace Catalog.Api.Products.UpdateProduct
 {
     public record UpdateProductCommand(Guid Id, string Name, List<string> Category, string Description, string ImangeFile, decimal Price) : ICommand<UpdateProductResult>;
     public record UpdateProductResult(bool IsSuccess);
@@ -19,11 +17,10 @@ namespace Catalog.Api.Products.UpdateProduct
                 .GreaterThan(0).WithMessage("Price must be greater than zero");
         }
     }
-    public class UpdateProductCommandHandler(IDocumentSession documentSession, ILogger<UpdateProductCommandHandler> logger) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
+    public class UpdateProductCommandHandler(IDocumentSession documentSession) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
     {
         public async Task<UpdateProductResult> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
         {
-            logger.LogInformation("UdpateProductCommandHandler.Handle is called with {@Model}", command);
             var product = await documentSession.LoadAsync<Product>(command.Id, cancellationToken);
             if (product == null) 
             {
@@ -33,7 +30,7 @@ namespace Catalog.Api.Products.UpdateProduct
             product.Name = command.Name;
             product.Category = command.Category;
             product.Description = command.Description;
-            product.ImageFIle = command.ImangeFile;
+            product.ImageFile = command.ImangeFile;
             product.Price = command.Price;  
 
             documentSession.Update(product);

@@ -10,12 +10,11 @@
             RuleFor(query => query.Id).NotEmpty().WithMessage("Id is required");
         }
     }
-    internal class GetProductByIdQueryHandler(IDocumentSession documentSession, ILogger<GetProductByIdQueryHandler> logger) 
+    internal class GetProductByIdQueryHandler(IDocumentSession documentSession) 
         : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
     {
         public async Task<GetProductByIdResult> Handle(GetProductByIdQuery model, CancellationToken cancellationToken)
         {
-            logger.LogInformation("GetProductByIdQueryHandler.Handle called with {@Model}", model);
             var result = await documentSession.LoadAsync<Product>(model.Id, cancellationToken);            
             if (result == null) {
                 throw new ProductNotFoundException(model.Id);

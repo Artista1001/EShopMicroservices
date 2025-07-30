@@ -11,12 +11,12 @@ namespace Catalog.Api.Products.DeleteProduct
             RuleFor(command => command.Id).NotEmpty().WithMessage("Product Id is required");
         }
     }
-    public class DeleteProductCommandHandler(IDocumentSession documentSession, ILogger<DeleteProductCommandHandler> logger)
+    public class DeleteProductCommandHandler(IDocumentSession documentSession)
         : ICommandHandler<DeleteProductCommand, DeleteProductResult>
     {
         public async Task<DeleteProductResult> Handle(DeleteProductCommand command, CancellationToken cancellationToken)
         {
-            logger.LogInformation("DeleteProductCommandHandler.Handler is called with {@model}", command);
+           
             var product = await documentSession.LoadAsync<Product>(command.Id, cancellationToken);
             if (product != null)
             {

@@ -17,7 +17,7 @@ namespace Catalog.Api.Products.GetProductByCategory
                 .Produces<GetProductByCategoryResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .WithName("Get Product By Category")
-                .WithDescription("Get Product by Category");
+                .WithDescription("Get Product by Category");          
               
         }
     }
